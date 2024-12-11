@@ -1,0 +1,943 @@
+<!-- BEGIN: main -->
+<script type="text/javascript" src="{Theme}jquery-1.9.js"></script>
+<script type="text/javascript" src="{Theme}jquery.multiSelect.js"></script>
+<link rel='stylesheet' href='{Theme}stylesheetgroup.css' />
+<link rel='stylesheet' href='{Theme}jquery.multiSelect.css' />
+<link rel="stylesheet" type="text/css" media="all" href="jscalendar/calendar-win2k-cold-1.css">
+<script type="text/javascript" src="jscalendar/calendar.js"></script>
+<script type="text/javascript" src="jscalendar/lang/calendar-en.js"></script>
+<script type="text/javascript" src="jscalendar/calendar-setup.js"></script>
+
+
+<link rel="stylesheet" href="themes/blue/datatables/jquery.dataTables.min.css">
+<script type="text/javascript" src="themes/blue/datatables/jquery.dataTables.min.js"></script>
+
+<script type="text/javascript" src="include/jqueryvalidate/jquery.validate.js"></script>
+
+<style>
+#servicediv,#branddiv{
+    width:100%;
+    height:150px;
+    width:270px;
+    position:absolute;
+    z-index:99999999999999999999999;
+    overflow-y:auto;
+    display:none;
+    background-color: white;
+    border: 0.5px solid #0080ff;
+
+}
+ul{
+    padding:0px;
+    list-style-type: none;
+    height: 100px;
+    overflow-y: auto;
+}
+
+ul li {
+    padding:3px;
+}
+
+ul li:hover {
+    background-color:#0080ff;
+}
+
+#sectab tbody tr td{
+    border: 1px solid #FFFFFF;
+}
+
+#astrix{
+    color:red;
+}
+
+</style>
+
+<fieldset style="margin-top:10px;">
+    <legend><font color="red"><b>TDS Search:</b></font></legend>
+    <form>
+     <table class="formOuterBorder" style="width:100%;">
+        <tr>
+            <td>
+                <table style="margin-left:400px;width:50%;">
+                    <tr>
+                        <td colspan="5"></td>
+                        <td class="datalabel"><span style="color:red;">*</span>From date : </td>
+                        <td>
+                                <input type="text" name="search_fromdate" id="search_jscal_field_date1" style="width:100px;" readonly/>&nbsp;&nbsp;<img src="{IMAGE_PATH}calendar.gif" id="search_jscal_trigger_rx_start_date1">
+                        </td>
+                            
+                        <td class="datalabel"><span style="color:red;">*</span>To date:</td>
+                        <td>
+                                <input type="text" name="search_todate" id="search_jscal_field_date2" style="width:100px;"  readonly/>&nbsp;&nbsp;<img src="{IMAGE_PATH}calendar.gif" id="search_jscal_trigger_rx_start_date2">
+                        </td>
+                        <td>
+                                <input type="button" class="btn" id='search_tds' value="Search">&nbsp;&nbsp;&nbsp;&nbsp; 
+                                <input type="button" value="Clear" name="cancel" class="btn" id="cancel" onclick="location.reload()" />
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    </form>
+</fieldset>
+
+   <div id="overlay">
+
+            <IMG src="{IMAGE_PATH}ajaxloader.gif" id='loader' border="0" style="height: 20;padding-top: 5px;display: none;margin: 0 auto;margin-top: 200px"/>  
+            
+            <div id="modal" style="width:500px !important;height:420px;margin-top:30px !important;">
+                <div id="title">
+                        <IMG src="{IMAGE_PATH}cross.png" border="0" style="height: 20;float:right;padding-top:5px;margin-right:5px;" onclick="off()"/> 
+                        <h3 class="moduleTitle" style='padding-top:5px;' id="heading">Create TDS</h3> 
+                </div>
+                <div style="margin-top:5px;text-align:center;font-size:14px !important;" id="bodydiv">
+                    <form id="TDSform" >
+                        <table cellspacing="5" cellpadding="8" style="margin:0 auto;" class="acttable">
+                           
+                                <tr>
+                                    <td style="text-align:right;">
+                                        <span id='astrix'>*</span> TDS Code 
+                                    </td>
+                                    <td>
+                                        <input type="text" name="tds_code" id="tds_code" style="width:100px;" maxlength="7"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:right;"><span id='astrix'>*</span>Services :</td>
+                                    <td colspan="2">
+                                        <select class='size' name="select_service" id='select_service'>
+                                            <option value="" hidden>Select Service</option>
+                                            {SERVICEOPTIONS}
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:right;">
+                                        <span id='astrix'>*</span>  Account Code : 
+                                    </td>
+                                    <td colspan="2">
+                                        <select name="acc_code" id="acc_code">
+                                            <option value="" hidden>Select Account code</option>
+                                            {ACCOUNT_CODE}
+
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:right;">
+                                        <span id='astrix'>*</span> Fourth Word of PAN 
+                                    </td>
+                                    <td>
+                                        <input type="text" name="fourth_pan_word" id="fourth_pan_word" maxlength="1" style="width:100px;" />
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td style="text-align:right;">
+                                        <span id='astrix'>*</span> TDS Rate:
+                                    </td>
+                                    <td>
+                                        <input type="number" name="tds_rate" id="tds_rate" style="width:100px;" min="0" max="100"/>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td style="text-align:right;"><span id='astrix'>*</span>Tax Type :</td>
+                                    <td colspan="2">
+                                        <select class='size' name="tds_tax_type" id='tds_tax_type'>
+                                            <option value="" hidden>Select Tax Type</option>
+                                            {TDS_TAX_TYPE_OPT}
+                                        </select>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td style="text-align:right;"><span id='astrix'>*</span>Tax Criteria :</td>
+                                    <td colspan="2">
+                                        <select class='size' name="tds_tax_criteria" id='tds_tax_criteria'>
+                                            <option value="" hidden>Select Tax Criteria</option>
+                                            {TDS_TAX_CRITERIA_OPT}
+                                        </select>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td style="text-align:right;">
+                                        <span id='astrix'>*</span>  Period :
+                                    </td>
+                                    <td>
+                                        <input type="text" name="fromdate" id="jscal_field_date1" style="width:100px;" readonly/>&nbsp;&nbsp;<img src="{IMAGE_PATH}calendar.gif" id="jscal_trigger_rx_start_date1">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="todate" id="jscal_field_date2" style="width:100px;"  readonly/>&nbsp;&nbsp;<img src="{IMAGE_PATH}calendar.gif" id="jscal_trigger_rx_start_date2">
+                                    </td>
+                                </tr>
+                                                            
+                        </table > 
+                        <br>
+                        <div id='bttn'>
+                            <input type="button" value="Create" class='btn' id='createTDS' style="padding:5px;width:100px;" />
+                            <input type="hidden" id="tds_id" style="padding:5px;width:100px;" value="" />
+                        </div>
+                    </form>
+                       
+                    </div>
+            </div>
+    </div>
+
+    <input type="button"  class='btn' value="New TDS" id="create_tds_btn" onclick="on()" style="margin:20px;padding:5px;width:150px;"/>
+
+
+    <fieldset style="margin-top:10px;">
+            <legend><font color="red"><b>TDS List:</b></font></legend>
+                <form>
+                        <table width="100%" border="0" cellpadding="2" cellspacing="1" id='sectab' class="FormBorder">
+                                <thead>
+                                    
+                                    <tr  id="headername" height="20" class="noScroll">
+                                        <td>Sr. No.</td>
+                                        <td>TDS Code</td>
+                                        <td>Services</td>
+                                        <td>Account Code</td>
+                                        <td>Fourth Word in PAN</td>
+                                        <td>TDS Rate</td>                                    
+                                        <td>From Date </td>
+                                        <td>To Date</td>             
+                                        <td>Actions</td>                                    
+                                    </tr>
+                                </thead>
+                                <tbody id="bdy" class="FormBorder">
+                                    {TDS_LIST}
+                                </tbody>
+                        
+    </table>
+        </form>
+        {PAGINATION}     
+    </fieldset>
+
+    <script>
+    $("document").ready(function(){
+
+           datatable = $('#sectab').DataTable(
+            {columns:[
+                    {data: 'col1'},
+                    {data: 'col2'},
+                    {data: 'col3'},
+                    {data: 'col4'},
+                    {data: 'col5'},
+                    {data: 'col6'},
+                    {data: 'col7'},
+                    {data: 'col8'},
+                    {data: 'col9'}                               
+                ],
+                columnDefs: [
+                { orderable: false, targets: -1 }
+                ],
+                "searching":false
+            }
+        );
+        
+
+
+
+        Calendar.setup ({
+            inputField : "jscal_field_date1",
+            ifFormat : "%Y-%m-%d",
+            showsTime : false,
+            button : "jscal_trigger_rx_start_date1",
+                singleClick : true,
+                step : 1,
+                disableFunc: function(date)
+                {
+                    var newdt= new Date();
+                    var yr=newdt.getFullYear();
+                    var now=new Date((yr-1)+"-04-01");
+                    var d = new Date(yr+"-03-31");
+
+                    
+                    //added 
+
+                        var currdate=new Date();
+                        var marchmonth= new Date((yr)+"-03-01");
+                        var marchlastday=new Date(marchmonth.getFullYear(),marchmonth.getMonth()+1,0);
+    
+                         if(currdate.getTime()<=marchmonth.getTime())
+                         {
+                            now = new Date((yr-1)+"-04-01");
+                            d = new Date((yr)+"-03-31");
+                            
+                        }else if(currdate.getDate()>=marchmonth.getDate() && (currdate.getTime()<=marchlastday.getTime()))
+                         {
+                            
+                             now=new Date((yr-1)+"-04-01");
+                             d = new Date((yr+1)+"-03-31");
+
+                             
+                            //  return true;
+                         }
+                         else
+                         {
+                            now=new Date((yr)+"-04-01");
+                            d = new Date((yr+1)+"-03-31");
+                         }
+
+                  
+                    if(date.getFullYear()<now.getFullYear())   {return true; }
+                    if(date.getFullYear()==now.getFullYear())  {if(date.getMonth()<now.getMonth()){ return true; } }
+                    if(date.getFullYear()>now.getFullYear()+1) {
+                        
+                        if(date.getMonth()>d.getMonth())
+                        {
+                            console.log("first");
+                            return true;    
+                        }
+                        }
+
+                   if(!(currdate.getDate()>=marchmonth.getDate() && (currdate.getTime()<=marchlastday.getTime())))
+                   { 
+                        if(date.getFullYear()==now.getFullYear()+1){if(date.getMonth()>d.getMonth()) {
+                            console.log("Second");
+                            return true;}}
+                    }
+                },
+    });
+        
+    $("#jscal_trigger_rx_start_date2").click(function(){
+
+var dat=$("#jscal_field_date1").val();
+        if(dat.length!=0)
+        {    
+            // console.log(dat);
+        Calendar.setup 
+            ({
+                    inputField : "jscal_field_date2",
+                    ifFormat : "%Y-%m-%d",
+                    showsTime : false,
+                    button : "jscal_trigger_rx_start_date2",
+                    singleClick : true,
+                    step : 1,
+                    disableFunc: function(date) {
+                        
+                        var now= new Date(dat);
+                        var yr=now.getFullYear()+1;
+                        var d = new Date(yr+"-03-31");
+                        
+                                              
+                        if(date.getFullYear()<now.getFullYear())    { return true;}
+                        
+                        if(date.getFullYear()==now.getFullYear())   
+                        {
+                            if(date.getMonth()<now.getMonth()+1)
+                            {
+                                return true;
+                            }
+                        }
+
+              
+                        if(date.getFullYear()==now.getFullYear())   
+                        {
+                            if(date.getMonth()==now.getMonth()+1)
+                            {
+                                if(date.getDate()<now.getDate()+1)
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                        if(date.getFullYear()>now.getFullYear()+1)  {return true;}
+                        if(date.getFullYear()==now.getFullYear()+1) {if(date.getMonth()>d.getMonth()){return true;}}
+                    },
+            });
+        }else{
+            alert("Please select From date first");
+        }
+})
+
+    
+
+$("#create_tds_btn").click(function(){
+    $('#heading').html("Create TDS");
+
+    $("#jscal_field_date1").parent().css("pointer-events","all");
+    
+$('#editTDS').replaceWith('<input type="button" value="Create" class="btn" id="createTDS" style="padding:5px;width:100px;">');
+
+});
+
+//create TDS
+
+$(document).delegate("#createTDS","click",function(){
+    
+    var fwp=document.getElementById("fourth_pan_word").value;
+    var tds_rate=document.getElementById("tds_rate").value;
+    var fromdate=document.getElementById("jscal_field_date1").value;
+    var todate=document.getElementById("jscal_field_date2").value;
+
+    var s = document.getElementById("select_service");
+    var services = s.options[s.selectedIndex].value;
+    //var onlyCharRegx = /^[a-zA-Z]*$/g; //Commented by Viveka
+    var onlyCharRegx = /^[PCHFATBLJG]*$/g; 
+    var onlyNumRegx = /^[0-9]*$/g;
+	
+	var onlyAlphNumRegx = /^[a-zA-Z0-9]+$/g;
+    
+      var a = document.getElementById("acc_code");
+    var acc_code = a.options[a.selectedIndex].value;
+
+    tds_code = $("#tds_code").val();
+    tds_tax_type = $("#tds_tax_type").val();
+    tds_tax_criteria = $("#tds_tax_criteria").val();
+
+
+    if(tds_code==null || tds_code.trim()=="")
+    {
+        alert("Enter TDS Code");
+        $("#tds_code").focus();
+        return false;
+    }   
+    if(!onlyAlphNumRegx.test(tds_code)){
+        alert("Enter only alphanumeric values for TDS Code");
+        return false;
+    }
+    if(services==null || services=="")
+    {
+        alert("Select Service");
+        $("#select_service").focus();
+        return false;
+    }
+    if(acc_code==null || acc_code=="")
+    {
+        alert("Select Account Code");
+        $("#acc_code").focus();
+        return false;
+    }
+    if(fwp==null || fwp=="")
+    {
+        alert("Enter Fourth Word of PAN");
+        $("#fourth_pan_word").focus();
+        return false;
+    }
+    /*if(!onlyCharRegx.test(fwp)){
+        alert("Enter only alphabet for Fourth Word of PAN");
+        return false;
+    }*/
+	if(!onlyCharRegx.test(fwp)){
+        alert("Enter valid Fourth Word of PAN");
+        return false;
+    }
+    if(tds_rate==null || tds_rate=="")
+    {
+        alert("Enter TDS Rate");
+        $("#tds_rate").focus();
+        return false;
+    }
+    if((isNaN(tds_rate)) || (tds_rate>100))
+    {
+        alert("Enter valid TDS Rate");
+        $("#tds_rate").focus();
+        return false;
+    }
+    if(tds_tax_type==null || tds_tax_type=="")
+    {
+        alert("Select Tax Type");
+        $("#tds_tax_type").focus();
+        return false;
+    }
+    if(tds_tax_criteria==null || tds_tax_criteria=="")
+    {
+        alert("Select Tax Criteria");
+        $("#tds_tax_criteria").focus();
+        return false;
+    }
+    if(fromdate==null || fromdate=="")
+    {
+        alert("Enter Valid From date");
+        return false;
+    }
+    if(todate==null || todate=="")
+    {
+        alert("Enter Valid To date");
+        return false;
+    }
+    var till_date = new Date(todate);
+	var from_date = new Date(fromdate);
+    if(from_date.getTime()>till_date.getTime())
+    {
+        alert("Please select valid till greater/equal to valid from!");
+        return false;
+    }
+
+    
+    //execute 1= Add TDS
+    //execute 2 List TDS
+    
+     $.ajax({
+                'type':'GET',
+                'url':'index.php?action=TDS_Ajax&module=Ajax&execute='+1+'&services='+services+'&FWP='+fwp+'&tds_rate='+tds_rate+'&fromdate='+fromdate+'&todate='+todate+'&acc_code='+acc_code+'&tds_code='+tds_code+'&tds_tax_type='+tds_tax_type+'&tds_tax_criteria='+tds_tax_criteria,
+                success:function(data)
+                {
+                    var search_from_date=$("#search_jscal_field_date1").val();
+                    var search_to_date=$("#search_jscal_field_date2").val();
+                    alert(data);
+                    off();
+                    
+                    $.ajax({
+                        'type':'GET',   
+                        'url':'index.php?action=TDS_Ajax&module=Ajax&execute='+2+'&from_date='+search_from_date+'&to_date='+search_to_date,
+                        success:function(data)
+                        {
+                            //$('#bdy').html(data);
+                            
+
+                            if (/^[\],:{}\s]*$/.test(data.replace(/\\["\\\/bfnrtu]/g, '@').replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').replace(/(?:^|:|,)(?:\s*\[)+/g, '')))
+                            {
+                                var dt=JSON.parse(data);
+                                datatable.clear();
+                                datatable.rows.add(dt);
+                                datatable.draw();
+                            }
+                            else
+                            {
+                                var dt=data.split(",,");
+                                alert(dt[1]);
+                            }
+                        }
+                    });
+                    
+                },
+                error:function(){
+                    off();
+                }
+                
+            }); 
+
+});
+
+
+
+$(document).delegate("#editTDS","click",function(){
+
+    var fwp=document.getElementById("fourth_pan_word").value;
+    var tds_rate=document.getElementById("tds_rate").value;
+    var fromdate=document.getElementById("jscal_field_date1").value;
+    var todate=document.getElementById("jscal_field_date2").value;
+    var tds_id=document.getElementById("tds_id").value;
+
+      
+    var s = document.getElementById("select_service");
+    var services = s.options[s.selectedIndex].value;
+    var onlyCharRegx = /^[PCHFATBLJG]*$/g;  /* /^[a-zA-Z]*$/g */
+    var onlyNumRegx = /^[0-9]*$/g;
+	
+	var onlyAlphNumRegx = /^[a-zA-Z0-9]+$/g;
+
+      var a = document.getElementById("acc_code");
+    var acc_code = a.options[a.selectedIndex].value;
+
+    tds_code = $("#tds_code").val();
+    tds_tax_type = $("#tds_tax_type").val();
+    tds_tax_criteria = $("#tds_tax_criteria").val();
+
+   
+    if(tds_code==null || tds_code.trim()=="")
+    {
+        alert("Enter TDS Code");
+        $("#tds_code").focus();
+        return false;
+    }
+    
+    if(!onlyAlphNumRegx.test(tds_code)){
+        alert("Enter only alphanumeric values for TDS Code");
+        return false;
+    }
+    if(services==null || services=="")
+    {
+        alert("Select Service");
+        return false;
+    }
+    if(acc_code==null || acc_code=="")
+    {
+        alert("Select Account Code");
+        return false;
+    }
+    if(fwp==null || fwp=="")
+    {
+        alert("Enter Fourth Word of PAN");
+        return false;
+    }
+    if(!onlyCharRegx.test(fwp)){
+        alert("Enter valid Fourth Word of PAN");
+        return false;
+    }
+    if(tds_rate==null || tds_rate=="")
+    {
+        alert("Enter TDS Rate");
+        return false;
+    }
+    if((isNaN(tds_rate)) || (tds_rate>100))
+    {
+        alert("Enter valid TDS Rate");
+        return false;
+    }
+    if(tds_tax_type==null || tds_tax_type=="")
+    {
+        alert("Select Tax Type");
+        $("#tds_tax_type").focus();
+        return false;
+    }
+    if(tds_tax_criteria==null || tds_tax_criteria=="")
+    {
+        alert("Select Tax Criteria");
+        $("#tds_tax_criteria").focus();
+        return false;
+    }
+    if(fromdate==null || fromdate=="")
+    {
+        alert("Enter Valid From date");
+        return false;
+    }
+    if(todate==null || todate=="")
+    {
+        alert("Enter Valid To date");
+        return false;
+    }
+    var till_date = new Date(todate);
+	var from_date = new Date(fromdate);
+    if(from_date.getTime()>till_date.getTime())
+    {
+        alert("Please select valid till greater/equal to valid from!");
+        return false;
+    }
+    
+    $.ajax({
+                'type':'GET',
+                'url':'index.php?action=TDS_Ajax&module=Ajax&execute='+5+'&id='+tds_id+'&services='+services+'&FWP='+fwp+'&tds_rate='+tds_rate+'&fromdate='+fromdate+'&todate='+todate+'&acc_code='+acc_code+'&tds_code='+tds_code+'&tds_tax_type='+tds_tax_type+'&tds_tax_criteria='+tds_tax_criteria,
+                success:function(data)
+                {
+                    var search_from_date=$("#search_jscal_field_date1").val();
+                    var search_to_date=$("#search_jscal_field_date2").val();
+
+                    alert(data);
+                     off();
+                    
+                    $.ajax({
+                        'type':'GET',   
+                        'url':'index.php?action=TDS_Ajax&module=Ajax&execute='+2+'&from_date='+search_from_date+'&to_date='+search_to_date,
+                        success:function(data)
+                        {
+                            //$('#bdy').html(data);
+
+                            if (/^[\],:{}\s]*$/.test(data.replace(/\\["\\\/bfnrtu]/g, '@').replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').replace(/(?:^|:|,)(?:\s*\[)+/g, '')))
+                            {
+                                var dt=JSON.parse(data);
+                                datatable.clear();
+                                datatable.rows.add(dt);
+                                datatable.draw();
+                            }
+                            else
+                            {
+                                var dt=data.split(",,");
+                                alert(dt[1]);
+                            }
+                        }
+                    });
+                    
+                },
+                error:function(){
+                    off();
+                }
+                
+            });  
+
+    });
+
+
+    //Search TDS
+
+    $("#search_tds").click(function()
+    {
+            var search_from_date=$("#search_jscal_field_date1").val();
+            var search_to_date=$("#search_jscal_field_date2").val();
+
+            if(search_from_date=="" || search_from_date==null)
+            {
+                alert('Select From Date to search');
+                return false;
+            }
+            if(search_to_date=="" || search_to_date==null)
+            {
+                alert('Select To Date to search');
+                return false;
+            }
+            var sr_to_date = new Date(search_to_date);
+            var sr_from_date = new Date(search_from_date);
+            if(sr_from_date.getTime()>sr_to_date.getTime())
+            {
+                alert("Please select To date greater/equal to From date!");
+                return false;
+            }
+
+            
+            $.ajax({
+
+                'type':'GET',   
+                        'url':'index.php?action=TDS_Ajax&module=Ajax&execute='+2+'&from_date='+search_from_date+'&to_date='+search_to_date,
+                        success:function(data)
+                        {
+                            //$('#bdy').html(data);
+                            if (/^[\],:{}\s]*$/.test(data.replace(/\\["\\\/bfnrtu]/g, '@').replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').replace(/(?:^|:|,)(?:\s*\[)+/g, '')))
+                            {
+                                var dt=JSON.parse(data);
+                                datatable.clear();
+                                datatable.rows.add(dt);
+                                datatable.draw();
+                            }
+                            else
+                            {
+                                var dt=data.split(",,");
+                                alert(dt[1]);
+                            }
+                        }
+            });
+
+        });
+
+        //search form calenders
+
+Calendar.setup ({
+            inputField : "search_jscal_field_date1",
+            ifFormat : "%Y-%m-%d",
+            showsTime : false,
+            button : "search_jscal_trigger_rx_start_date1",
+                singleClick : true,
+                step : 1,
+                disableFunc: function(date)
+                {
+                    var newdt= new Date();
+                    var yr=newdt.getFullYear();
+                    var now=new Date((yr-1)+"-04-01");
+                    var d = new Date(yr+"-03-31");
+
+                    
+                    //added 
+
+                        var currdate=new Date();
+                        var marchmonth= new Date((yr)+"-03-01");
+                        var marchlastday=new Date(marchmonth.getFullYear(),marchmonth.getMonth()+1,0);
+    
+                        // console.log(currdate.getTime()+" "+marchlastday);
+                        // console.log(yr);
+                         if(currdate.getTime()<=marchmonth.getTime())
+                         {
+                            now = new Date((yr-1)+"-04-01");
+                            d = new Date((yr)+"-03-31");
+                            //  if(currdate.getFullYear()==marchlastday.getFullYear())
+
+                        }else if(currdate.getDate()>=marchmonth.getDate() && (currdate.getTime()<=marchlastday.getTime()))
+                         {
+                            // console.log("here in elses if");
+                            //  console.log(marchlastday.getTime());
+                            // console.log(yr);
+
+                             now=new Date((yr-1)+"-04-01");
+                             d = new Date((yr+1)+"-03-31");
+
+                             
+                            //  return true;
+                         }
+                         else
+                         {
+                            now=new Date((yr)+"-04-01");
+                            d = new Date((yr+1)+"-03-31");
+                         }
+
+                         console.log(now);
+                             console.log(d);
+
+                      
+                    if(date.getFullYear()<now.getFullYear())   {return true; }
+                    if(date.getFullYear()==now.getFullYear())  {if(date.getMonth()<now.getMonth()){ return true; } }
+                 
+                    if(date.getFullYear()>now.getFullYear()+1) {
+                        
+                        if(date.getMonth()>d.getMonth())
+                        {
+                            console.log("first");
+                            return true;    
+                        }
+                        }
+
+                   if(!(currdate.getDate()>=marchmonth.getDate() && (currdate.getTime()<=marchlastday.getTime())))
+                   { 
+                        if(date.getFullYear()==now.getFullYear()+1){if(date.getMonth()>d.getMonth()) {
+                            console.log("Second");
+                            return true;}}
+                    }
+                },
+    });
+        
+    $("#search_jscal_trigger_rx_start_date2").click(function(){
+
+                var dat=$("#search_jscal_field_date1").val();
+                if(dat.length!=0)
+                {    
+                    // console.log(dat);
+                Calendar.setup 
+                    ({
+                        inputField : "search_jscal_field_date2",
+                        ifFormat : "%Y-%m-%d",
+                        showsTime : false,
+                        button : "search_jscal_trigger_rx_start_date2",
+                        singleClick : true,
+                        step : 1,
+                        disableFunc: function(date) {
+                            
+                            var now= new Date(dat);
+                            var yr=now.getFullYear()+1;
+                            var d = new Date(yr+"-03-31");
+                            
+           
+                        //added end
+
+                       
+                        
+                        if(date.getFullYear()<now.getFullYear())    { return true;}
+                        
+                        if(date.getFullYear()==now.getFullYear())   
+                        {
+                            if(date.getMonth()<now.getMonth()+1)
+                            {
+                                return true;
+                            }
+                        }
+
+              
+                        if(date.getFullYear()==now.getFullYear())   
+                        {
+                            if(date.getMonth()==now.getMonth()+1)
+                            {
+                                if(date.getDate()<now.getDate()+1)
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                        if(date.getFullYear()>now.getFullYear()+1)  {return true;}
+                        if(date.getFullYear()==now.getFullYear()+1) {if(date.getMonth()>d.getMonth()){return true;}}
+                    },
+            });
+        }else{
+            alert("Please select From date first");
+            return false;
+        }
+})
+
+
+
+}); // End Document Ready
+    </script>
+    
+<script>
+  function on() {
+    //console.log(m);
+    $("#modal").css("display","none");
+    $("#overlay #loader").css("display",'block');
+    document.getElementById("overlay").style.display = "block";
+
+    $("#overlay #loader").css("display",'none');
+    $("#modal").css("display","block");
+    }
+
+
+function off() {
+
+    $('form').trigger("reset");
+     
+    document.getElementById("overlay").style.display = "none";
+   
+}
+
+
+function deltds(id)
+{
+  
+    
+    var id=id;
+   
+    if(window.confirm("Are you sure to delete TDS:"+id+"?"))
+   {
+        $.ajax({
+                'type':'GET',
+                    'url':'index.php?action=TDS_Ajax&module=Ajax&execute=3&id='+id,
+
+                success:function(data){
+                    var search_jscal_field_date1=$("#search_jscal_field_date1").val();
+                    var search_jscal_field_date2=$("#search_jscal_field_date2").val();
+                                               
+                                //$('#bdy').html(data);
+                                if(data==1)
+                                {
+                                    var rowid = $("#sectab").find("input[id='tdsid'][value='"+id+"']").parents("tr");
+                                    datatable.row( rowid ).remove().draw();
+
+                                    alert("Record Deleted.");
+                                }
+                                else
+                                {
+                                    alert("Something Went Wrong.");
+                                }
+                          
+                    }         
+        })    
+    }else
+    {
+        return false;
+    }
+     //End if
+
+     
+}
+
+
+function edittds(id)
+{
+    
+    on();
+    $('#heading').html("Edit TDS");
+
+    $('#createTDS').replaceWith('<input type="button" value="Edit" class="btn" id="editTDS" style="padding:5px;width:100px;">');
+
+    var id=id;
+
+    
+    $('#tds_id').val(id);
+    $("#jscal_field_date1").parent().css("pointer-events","none");
+
+ $.ajax({
+                'type':'GET',
+                    'url':'index.php?action=TDS_Ajax&module=Ajax&execute=4&id='+id,
+
+                success:function(data){
+                 
+                    var new_data=JSON.parse(data);
+                 
+                    $("#select_service").val(new_data[0]);
+                    $("#acc_code").val(new_data[1]);
+                    $("#fourth_pan_word").val(new_data[2]);
+                    $("#tds_rate").val(new_data[3]);
+                    $("#jscal_field_date1").val(new_data[4]);
+                    $("#jscal_field_date2").val(new_data[5]);
+                    $("#tds_code").val(new_data[6]);
+                    $("#tds_tax_type").val(new_data[7]);
+                    $("#tds_tax_criteria").val(new_data[8]);
+                    
+                    }         
+        })   
+        
+       
+
+}
+
+    </script>
+    <!-- END: main -->

@@ -1,0 +1,996 @@
+<!-- BEGIN: main -->
+<script type="text/javascript" src="{Theme}jquery-1.9.js"></script>
+<script type="text/javascript" src="{Theme}jquery.multiSelect.js"></script>
+<link rel='stylesheet' href='{Theme}stylesheetgroup.css' />
+<link rel='stylesheet' href='{Theme}jquery.multiSelect.css' />
+<link rel="stylesheet" type="text/css" media="all" href="jscalendar/calendar-win2k-cold-1.css">
+<script type="text/javascript" src="jscalendar/calendar.js"></script>
+<script type="text/javascript" src="jscalendar/lang/calendar-en.js"></script>
+<script type="text/javascript" src="jscalendar/calendar-setup.js"></script>
+
+<link rel="stylesheet" href="themes/blue/datatables/jquery.dataTables.min.css">
+<script type="text/javascript" src="themes/blue/datatables/jquery.dataTables.min.js"></script>
+
+
+<style>
+.calendar{
+    position: fixed !important;
+}
+#servicediv,#branddiv{
+    width:100%;
+    height:150px;
+    width:270px;
+    position:absolute;
+    z-index:99999999999999999999999;
+    overflow-y:auto;
+    display:none;
+    background-color: white;
+    border: 0.5px solid #0080ff;
+
+}
+ul{
+    padding:0px;
+    list-style-type: none;
+    height: 100px;
+    overflow-y: auto;
+}
+
+ul li {
+    padding:3px;
+}
+
+ul li:hover {
+    background-color:#0080ff;
+}
+
+#sectab tbody tr td{
+    border: 1px solid #FFFFFF;
+}
+
+#astrix{
+    color:red;
+}
+
+</style>
+
+<fieldset style="margin-top:10px;">
+        <legend><font color="red"><b>GST Search:</b></font></legend>
+        <form>
+         <table class="formOuterBorder" style="width:100%;">
+            <tr>
+                <td>
+                    <table style="margin-left:400px;width:50%;">
+                        <tr>
+                            <td colspan="5"></td>
+                            <td class="datalabel"><span id='astrix'>*</span> From date : </td>
+                            <td>
+                                    <input type="text" name="search_fromdate" id="search_jscal_field_date1" style="width:100px;" readonly/>&nbsp;&nbsp;<img src="{IMAGE_PATH}calendar.gif" id="search_jscal_trigger_rx_start_date1">
+                            </td>
+                                
+                            <td class="datalabel"><span id='astrix'>*</span> To date:</td>
+                            <td>
+                                    <input type="text" name="search_todate" id="search_jscal_field_date2" style="width:100px;"  readonly/>&nbsp;&nbsp;<img src="{IMAGE_PATH}calendar.gif" id="search_jscal_trigger_rx_start_date2">
+                            </td>
+                            <td>
+                                    <input type="button" class="btn" id='search_gst' value="Search">&nbsp;&nbsp;&nbsp;&nbsp; 
+                                    <input type="button" value="Clear" name="cancel" class="btn" id="cancel" onclick="location.reload()" />
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        </form>
+    </fieldset>
+
+
+    <div id="overlay">
+
+            <IMG src="{IMAGE_PATH}ajaxloader.gif" id='loader' border="0" style="height: 20;padding-top: 5px;display: none;margin: 0 auto;margin-top: 200px"/>  
+            
+            <div id="modal" style="width:500px !important;height:450px;margin-top:30px !important;">
+                <div id="title">
+                        <IMG src="{IMAGE_PATH}cross.png" border="0" style="height: 20;float:right;padding-top:5px;margin-right:5px;" onclick="off()"/> 
+                        <h3 class="moduleTitle" style='padding-top:5px;' id="heading">Create GST</h3> 
+                </div>
+                <div style="margin-top:5px;text-align:center;font-size:14px !important;" id="bodydiv">
+                    <form id="gstform" >
+                        <table cellspacing="5" cellpadding="8" style="margin:0 auto;" class="gsttable">
+                                
+                                <tr>
+                                    <td style="text-align:right;"><span id='astrix'>*</span>Services :</td>
+                                    <td colspan="2">
+                                        <select class='siz' name="service_name" id='service_name'>
+                                            <option value="-1" hidden>Select service</option>
+                                                {SERVICES_OPTION}
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:right;">
+                                        <span id='astrix'>*</span> SAC/HSN Code :
+                                    </td>
+                                    <td colspan="2">
+                                        <input type="text" size="20" name="hsn_code" id="hsn_code" placeholder="Enter HSN Code"  class='siz'/> 
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td style="text-align:right;">
+                                        <span id='astrix'>*</span>  IGST : 
+                                    </td>
+                                    <td colspan="2" id="codeholder">
+                                        <select name="igst"  id="igst" class='siz'>
+                                            <option hidden value=''>Please Select</option>
+                                            {OPT_IGST}
+                                        </select>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td style="text-align:right;">
+                                        <span id='astrix'>*</span>  Normal GST : 
+                                    </td>
+                                    <td colspan="2" id="codeholder">
+                                        <select id="normal_gst" name="normal_gst" onchange="">
+                                            <option hidden value=''>Please Select</option>
+                                            {OPT_YN}
+                                        </select>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td style="text-align:right;">
+                                        <span id='astrix'>*</span>  RCM : 
+                                    </td>
+                                    <td colspan="2" id="codeholder">
+                                        <select id="rcm_val" name="rcm_val" disabled>
+                                            <option hidden value=''>Please Select</option>
+                                            {OPT_YN}
+                                        </select>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td style="text-align:right;">
+                                        <span id='astrix'>*</span>  GST Credit Availment : 
+                                    </td>
+                                    <td colspan="2" id="codeholder">
+                                        <select id="credit_gst" name="credit_gst">
+                                            <option hidden value=''>Please Select</option>
+                                            {OPT_YN}
+                                        </select>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td style="text-align:right;">
+                                        <span id='astrix'>*</span>  Period :
+                                    </td>
+                                    <td>
+                                        <input type="text" name="fromdate" id="jscal_field_date1" style="width:100px;" readonly/>&nbsp;&nbsp;<img src="{IMAGE_PATH}calendar.gif" id="jscal_trigger_rx_start_date1">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="todate" id="jscal_field_date2" style="width:100px;"  readonly/>&nbsp;&nbsp;<img src="{IMAGE_PATH}calendar.gif" id="jscal_trigger_rx_start_date2">
+                                    </td>
+                                </tr>
+
+                          
+                        </table > 
+                        <br>
+                        <div id='bttn'>
+                            <input type="button" value="Create" class='btn' id='create_gst' style="padding:5px;width:100px;" />
+                            
+                        </div>
+                    </form>
+                       
+                    </div>
+            </div>
+    </div>
+
+   
+    <input type="button"  class='btn' value="New GST"  onclick="on()" style="margin:20px;padding:5px;width:150px;"/>
+    <input type="hidden" value="" id="GST_ID"/>
+
+    <fieldset style="margin-top:10px;">
+            <legend><font color="red"><b>GST List:</b></font></legend>
+                <form>
+                        <table width="100%" border="0" cellpadding="2" cellspacing="1" id='sectab' class="FormBorder">
+                                <thead>
+                                    <tr  id="headername" height="20" class="noScroll">
+                                        <th>Sr. No.</th>
+                                        <th>Services</th>
+                                        <th>HSN Code</th>
+                                        <th>SGST</th>
+                                        <th>CGST</th>
+                                        <th>IGST</th>
+                                        <th>From Date </th>
+                                        <th>To Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bdy" class="FormBorder">
+                                    {GST_LIST}
+                                </tbody>
+                        
+    </table>
+        </form>
+             
+    </fieldset>
+    
+<script>
+
+    $(document).ready(function () {
+        datatable = $('#sectab').DataTable(
+            {
+                columns:[
+                    {data: 'col1'},
+                    {data: 'col2'},
+                    {data: 'col3'},
+                    {data: 'col4'},
+                    {data: 'col5'},
+                    {data: 'col6'},
+                    {data: 'col7'},
+                    {data: 'col8'},
+                    {data: 'col9'}
+              
+                ],
+                columnDefs: [
+                { orderable: false, targets: -1 }
+                ],
+                "searching":false
+            }
+        );
+
+        //Search GST
+
+        $("#search_gst").click(function()
+        {
+            var search_from_date=$("#search_jscal_field_date1").val();
+            var search_to_date=$("#search_jscal_field_date2").val();
+
+            if(search_from_date=="" || search_from_date==null)
+            {
+                alert('Select From Date to search');
+                return false;
+            }
+            if(search_to_date=="" || search_to_date==null)
+            {
+                alert('Select To Date to search');
+                return false;
+            }
+            var sr_to_date = new Date(search_to_date);
+            var sr_from_date = new Date(search_from_date);
+            if(sr_from_date.getTime()>sr_to_date.getTime())
+            {
+                alert("Please select To date greater/equal to From date!");
+                return false;
+            }
+
+            
+            $.ajax({
+
+                'type':'GET',   
+                        'url':'index.php?action=GST_Ajax&module=Ajax&execute='+2+'&from_date='+search_from_date+'&to_date='+search_to_date,
+                        success:function(data)
+                        {
+                            //$('#bdy').html(data);
+                            if (/^[\],:{}\s]*$/.test(data.replace(/\\["\\\/bfnrtu]/g, '@').replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').replace(/(?:^|:|,)(?:\s*\[)+/g, '')))
+                            {
+                                var dt=JSON.parse(data);
+                                datatable.clear();
+                                datatable.rows.add(dt);
+                                datatable.draw();
+                            }
+                            else
+                            {
+                                var dt=data.split(",,");
+                                alert(dt[1]);
+                            }
+                        }
+            });
+
+        });
+
+        $(document).delegate("#normal_gst","change",function(){
+            var normal_gst=$("#normal_gst").val();
+            
+            if(normal_gst=='Y'){
+             $("#rcm_val").val('N');
+             console.log(normal_gst);
+             }
+             else{
+             $("#rcm_val").val('Y');
+             console.log(normal_gst);
+             }
+        })
+
+
+        //Create GST
+        $(document).delegate("#create_gst","click",function(){
+                
+            var s = document.getElementById("service_name");
+            var services = s.options[s.selectedIndex].value;
+            var onlyCharNumRegx = /^[a-zA-Z0-9]*$/;
+
+            if(services==null || services=="" || services==0 || services==-1)
+            {
+               alert("Select Service"); 
+               return false;
+            }
+
+            var hsn_code=$("#hsn_code").val();
+            if(hsn_code==null || hsn_code=="")
+            {
+                alert("Enter HSN Code");
+                $("#hsn_code").focus();
+                return false;
+            }
+            var hsn_code=$("#hsn_code").val();
+            if(!onlyCharNumRegx.test(hsn_code)){
+                alert("Enter only alphabet and numeric value for SAC/HSN Code");
+                return false;
+            }
+
+            var igst=$("#igst").val();
+            if(igst==null || igst=="")
+            {
+                alert("Select IGST");
+                $("#igst").focus();
+                return false;
+            }
+            if((isNaN(igst)) || (igst>100))
+            {
+                alert("Enter valid IGST Rate");
+                return false;
+            }
+
+            var normal_gst=$("#normal_gst").val();
+            if(normal_gst==null || normal_gst=="")
+            {
+                alert("Select Normal GST");
+                $("#normal_gst").focus();
+                return false;
+            }
+
+            var rcm_val=$("#rcm_val").val();
+            if(rcm_val==null || rcm_val=="")
+            {
+            alert("Select RCM");
+            $("#rcm_val").focus();
+            return false;
+            }
+
+
+           
+
+            var credit_gst=$("#credit_gst").val();
+            if(credit_gst==null || credit_gst=="")
+            {
+                alert("Select GST Credit Availment");
+                $("#credit_gst").focus();
+                return false;
+            }
+
+            var from_date=$("#jscal_field_date1").val();
+            var to_date=$("#jscal_field_date2").val();
+
+
+            if(from_date==null || from_date=="")
+            {
+                alert("Select From Date");
+                return false;
+            }
+
+
+            if(to_date==null || to_date=="")
+            {
+                alert("Select To Date");
+                return false;
+            }
+            var till_date = new Date(to_date);
+            var fr_date = new Date(from_date);
+            if(fr_date.getTime()>till_date.getTime())
+            {
+                alert("Please select valid till greater/equal to valid from!");
+                return false;
+            }
+
+
+            $.ajax({
+                'type':'GET',
+                'url':'index.php?action=GST_Ajax&module=Ajax&execute='+1+'&services='+services+'&hsn_code='+hsn_code+'&igst='+igst+'&fromdate='+from_date+'&todate='+to_date+'&normal_gst='+normal_gst+'&rcm_val='+rcm_val+'&credit_gst='+credit_gst,
+                success:function(data)
+                {
+                    alert(data);
+                    off();
+                    var search_jscal_field_date1=$("#search_jscal_field_date1").val();
+                    var search_jscal_field_date2=$("#search_jscal_field_date2").val();
+                    
+                    $.ajax({
+                        'type':'GET',   
+                        'url':'index.php?action=GST_Ajax&module=Ajax&execute='+2+'&from_date='+search_jscal_field_date1+'&to_date='+search_jscal_field_date2,
+                        success:function(data)
+                        {
+                           // $('#bdy').html(data);
+
+                           if (/^[\],:{}\s]*$/.test(data.replace(/\\["\\\/bfnrtu]/g, '@').replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').replace(/(?:^|:|,)(?:\s*\[)+/g, '')))
+                            {
+                                var dt=JSON.parse(data);
+                                datatable.clear();
+                                datatable.rows.add(dt);
+                                datatable.draw();
+                            }
+                            else
+                            {
+                                var dt=data.split(",,");
+                                alert(dt[1]);
+                            }
+                        }
+                    });
+                    
+                },
+                error:function(){
+                    off();
+                }
+                
+            }); 
+
+
+    });
+
+    //Edit GST
+    $(document).delegate("#edit_gst","click",function(){
+
+        var s = document.getElementById("service_name");
+            var services = s.options[s.selectedIndex].value;
+
+            var onlyCharNumRegx = /^[a-zA-Z0-9]*$/g;
+            
+
+            if(services==null || services=="" || services==0 || services==-1)
+            {
+               alert("Select Service"); 
+               return false;
+            }
+
+            var hsn_code=$("#hsn_code").val();
+            if(hsn_code==null || hsn_code=="")
+            {
+                alert("Enter HSN Code");
+                $("#hsn_code").focus();
+                return false;
+            }
+            var hsn_code=$("#hsn_code").val();
+            if(!onlyCharNumRegx.test(hsn_code)){
+                alert("Enter only alphabet and numeric value for SAC/HSN Code");
+                return false;
+            }
+           
+
+            var igst=$("#igst").val();
+            if(igst==null || igst=="")
+            {
+                alert("Select IGST");
+                $("#igst").focus();
+                return false;
+            }
+
+            var normal_gst=$("#normal_gst").val();
+            if(normal_gst==null || normal_gst=="")
+            {
+                alert("Select Normal GST");
+                $("#normal_gst").focus();
+                return false;
+            }
+
+            var rcm_val=$("#rcm_val").val();
+            if(rcm_val==null || rcm_val=="")
+            {
+                alert("Select RCM");
+                $("#rcm_val").focus();
+                return false;
+            }
+
+            var credit_gst=$("#credit_gst").val();
+            if(credit_gst==null || credit_gst=="")
+            {
+                alert("Select GST Credit Availment");
+                $("#credit_gst").focus();
+                return false;
+            }
+
+            var from_date=$("#jscal_field_date1").val();
+            var to_date=$("#jscal_field_date2").val();
+
+
+            if(from_date==null || from_date=="")
+            {
+                alert("Select From Date");
+                return false;
+            }
+
+
+            if(to_date==null || to_date=="")
+            {
+                alert("Select To Date");
+                return false;
+            }
+            var till_date = new Date(to_date);
+            var fr_date = new Date(from_date);
+            if(fr_date.getTime()>till_date.getTime())
+            {
+                alert("Please select valid till greater/equal to valid from!");
+                return false;
+            }
+
+            var current_gst_id=$('#GST_ID').val();
+            
+            
+            $.ajax({
+                'type':'GET',
+                'url':'index.php?action=GST_Ajax&module=Ajax&execute='+4+'&services='+services+'&hsn_code='+hsn_code+'&igst='+igst+'&fromdate='+from_date+'&todate='+to_date+'&normal_gst='+normal_gst+'&rcm_val='+rcm_val+'&credit_gst='+credit_gst+'&id='+current_gst_id,
+                success:function(data)
+                {
+                    alert(data);
+                    off();
+                    var search_jscal_field_date1=$("#search_jscal_field_date1").val();
+                    var search_jscal_field_date2=$("#search_jscal_field_date2").val();
+                    
+                    $.ajax({
+                        'type':'GET',   
+                        'url':'index.php?action=GST_Ajax&module=Ajax&execute='+2+'&from_date='+search_jscal_field_date1+'&to_date='+search_jscal_field_date2,
+                        success:function(data)
+                        {
+                           // $('#bdy').html(data);
+                        
+
+                           if (/^[\],:{}\s]*$/.test(data.replace(/\\["\\\/bfnrtu]/g, '@').replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').replace(/(?:^|:|,)(?:\s*\[)+/g, '')))
+                            {
+                                var dt=JSON.parse(data);
+                                datatable.clear();
+                                datatable.rows.add(dt);
+                                datatable.draw();
+                            }
+                            else
+                            {
+                                var dt=data.split(",,");
+                                alert(dt[1]);
+                            }
+                        }
+                    });
+                    
+                },
+                error:function(){
+                    off();
+                }
+                
+            }); 
+    });
+
+
+
+        // JS Calender setup
+
+        Calendar.setup ({
+            inputField : "jscal_field_date1",
+            ifFormat : "%Y-%m-%d",
+            showsTime : false,
+            button : "jscal_trigger_rx_start_date1",
+                singleClick : true,
+                step : 1,
+                disableFunc: function(date)
+                {
+                    var newdt= new Date();
+                    var yr=newdt.getFullYear();
+                    var now=new Date((yr-1)+"-04-01");
+                    var d = new Date(yr+"-03-31");
+
+                    
+                    //added 
+
+                        var currdate=new Date();
+                        var marchmonth= new Date((yr)+"-03-01");
+                        var marchlastday=new Date(marchmonth.getFullYear(),marchmonth.getMonth()+1,0);
+    
+                        // console.log(currdate.getTime()+" "+marchlastday);
+                        // console.log(yr);
+                         if(currdate.getTime()<=marchmonth.getTime())
+                         {
+                            now = new Date((yr-1)+"-04-01");
+                            d = new Date((yr)+"-03-31");
+                            //  if(currdate.getFullYear()==marchlastday.getFullYear())
+
+                        }else if(currdate.getDate()>=marchmonth.getDate() && (currdate.getTime()<=marchlastday.getTime()))
+                         {
+                            // console.log("here in elses if");
+                            //  console.log(marchlastday.getTime());
+                            // console.log(yr);
+
+                             now=new Date((yr-1)+"-04-01");
+                             d = new Date((yr+1)+"-03-31");
+
+                             
+                            //  return true;
+                         }
+                         else
+                         {
+                            now=new Date((yr)+"-04-01");
+                            d = new Date((yr+1)+"-03-31");
+                         }
+
+                         console.log(now);
+                             console.log(d);
+
+                        //  console.log(currdate);
+                        //console.log(marchlastday.getFullYear());
+
+                        // if(currdate.getTime()>=marchmonth.getTime() && currdate.getTime()<=marchlastday.getTime())
+                        // {
+                        //     console.log("its here");
+                        //     console.log("here in elses if");
+                        //      console.log(marchlastday.getTime());
+                        //      now=new Date((yr-1)+"-04-01");
+                        //      d = new Date((yr)+"-03-31");
+                        // }
+
+                    //added End
+                    
+                    // if(newdt.getMonth()==3) 
+                    // {
+                    //     now=new Date((yr)+"-04-01");
+                    //     d = new Date((yr+1)+"-03-31");
+                    // }
+
+                    if(date.getFullYear()<now.getFullYear())   {return true; }
+                    if(date.getFullYear()==now.getFullYear())  {if(date.getMonth()<now.getMonth()){ return true; } }
+                    /* if(date.getFullYear()==now.getFullYear()) 
+                        {
+                            if(date.getMonth()==now.getMonth()) 
+                            {
+                                if(date.getDate()<now.getDate())
+                                {
+                                    return true;
+                                }
+                            } 
+                        } */
+                    if(date.getFullYear()>now.getFullYear()+1) {
+                        
+                        if(date.getMonth()>d.getMonth())
+                        {
+                            console.log("first");
+                            return true;    
+                        }
+                        }
+
+                   if(!(currdate.getDate()>=marchmonth.getDate() && (currdate.getTime()<=marchlastday.getTime())))
+                   { 
+                        if(date.getFullYear()==now.getFullYear()+1){if(date.getMonth()>d.getMonth()) {
+                            console.log("Second");
+                            return true;}}
+                    }
+                },
+    });
+        
+    $("#jscal_trigger_rx_start_date2").click(function(){
+
+var dat=$("#jscal_field_date1").val();
+        if(dat.length!=0)
+        {    
+            // console.log(dat);
+        Calendar.setup 
+            ({
+                    inputField : "jscal_field_date2",
+                    ifFormat : "%Y-%m-%d",
+                    showsTime : false,
+                    button : "jscal_trigger_rx_start_date2",
+                    singleClick : true,
+                    step : 1,
+                    disableFunc: function(date) {
+                        
+                        var now= new Date(dat);
+                        var yr=now.getFullYear()+1;
+                        var d = new Date(yr+"-03-31");
+                        
+                        // console.log("now"+now);
+                        // console.log("yr"+yr);
+                        // console.log("d"+d);
+                        // console.log("d"+d);`
+
+                        //added
+
+                        // var marchmonth= new Date((yr)+"-03-01");
+                        // var marchlastday=new Date(marchmonth.getFullYear(),marchmonth.getMonth()+1,0);
+                        
+                        // console.log("marchmonth"+marchmonth);
+                        // console.log("marchlastday"+marchlastday);
+    
+                        // var aprmonth= new Date((yr)+"-04-01");
+                        // var currdate=new Date();
+                      
+
+                        // if(currdate>=marchmonth && currdate<=marchlastday)
+                        // {
+                        //     if(currdate.getFullYear()==marchmonth.getFullYear())
+                        //     {
+                        //         //console.log(date.getFullYear());
+                        //         // console.log(currdate);
+                        //         // console.log(marchlastday)
+                        //         return true;
+                        //     }
+                        // }
+
+                        
+
+                        //added end
+
+                       
+                        
+                        if(date.getFullYear()<now.getFullYear())    { return true;}
+                        
+                        if(date.getFullYear()==now.getFullYear())   
+                        {
+                            if(date.getMonth()<now.getMonth()+1)
+                            {
+                                return true;
+                            }
+                        }
+
+              
+                        if(date.getFullYear()==now.getFullYear())   
+                        {
+                            if(date.getMonth()==now.getMonth()+1)
+                            {
+                                if(date.getDate()<now.getDate()+1)
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                        if(date.getFullYear()>now.getFullYear()+1)  {return true;}
+                        if(date.getFullYear()==now.getFullYear()+1) {if(date.getMonth()>d.getMonth()){return true;}}
+                    },
+            });
+        }else{
+            alert("Please select From date first");
+        }
+})
+
+
+//search form calenders
+
+Calendar.setup ({
+            inputField : "search_jscal_field_date1",
+            ifFormat : "%Y-%m-%d",
+            showsTime : false,
+            button : "search_jscal_trigger_rx_start_date1",
+                singleClick : true,
+                step : 1,
+                disableFunc: function(date)
+                {
+                    var newdt= new Date();
+                    var yr=newdt.getFullYear();
+                    var now=new Date((yr-1)+"-04-01");
+                    var d = new Date(yr+"-03-31");
+
+                    
+                    //added 
+
+                        var currdate=new Date();
+                        var marchmonth= new Date((yr)+"-03-01");
+                        var marchlastday=new Date(marchmonth.getFullYear(),marchmonth.getMonth()+1,0);
+    
+                        // console.log(currdate.getTime()+" "+marchlastday);
+                        // console.log(yr);
+                         if(currdate.getTime()<=marchmonth.getTime())
+                         {
+                            now = new Date((yr-1)+"-04-01");
+                            d = new Date((yr)+"-03-31");
+                            //  if(currdate.getFullYear()==marchlastday.getFullYear())
+
+                        }else if(currdate.getDate()>=marchmonth.getDate() && (currdate.getTime()<=marchlastday.getTime()))
+                         {
+                            // console.log("here in elses if");
+                            //  console.log(marchlastday.getTime());
+                            // console.log(yr);
+
+                             now=new Date((yr-1)+"-04-01");
+                             d = new Date((yr+1)+"-03-31");
+
+                             
+                            //  return true;
+                         }
+                         else
+                         {
+                            now=new Date((yr)+"-04-01");
+                            d = new Date((yr+1)+"-03-31");
+                         }
+
+                         console.log(now);
+                             console.log(d);
+
+                      
+                    if(date.getFullYear()<now.getFullYear())   {return true; }
+                    if(date.getFullYear()==now.getFullYear())  {if(date.getMonth()<now.getMonth()){ return true; } }
+                 
+                    if(date.getFullYear()>now.getFullYear()+1) {
+                        
+                        if(date.getMonth()>d.getMonth())
+                        {
+                            console.log("first");
+                            return true;    
+                        }
+                        }
+
+                   if(!(currdate.getDate()>=marchmonth.getDate() && (currdate.getTime()<=marchlastday.getTime())))
+                   { 
+                        if(date.getFullYear()==now.getFullYear()+1){if(date.getMonth()>d.getMonth()) {
+                            console.log("Second");
+                            return true;}}
+                    }
+                },
+    });
+        
+    $("#search_jscal_trigger_rx_start_date2").click(function(){
+
+                var dat=$("#search_jscal_field_date1").val();
+                if(dat.length!=0)
+                {    
+                    // console.log(dat);
+                Calendar.setup 
+                    ({
+                        inputField : "search_jscal_field_date2",
+                        ifFormat : "%Y-%m-%d",
+                        showsTime : false,
+                        button : "search_jscal_trigger_rx_start_date2",
+                        singleClick : true,
+                        step : 1,
+                        disableFunc: function(date) {
+                            
+                            var now= new Date(dat);
+                            var yr=now.getFullYear()+1;
+                            var d = new Date(yr+"-03-31");
+                            
+           
+                        //added end
+
+                       
+                        
+                        if(date.getFullYear()<now.getFullYear())    { return true;}
+                        
+                        if(date.getFullYear()==now.getFullYear())   
+                        {
+                            if(date.getMonth()<now.getMonth()+1)
+                            {
+                                return true;
+                            }
+                        }
+
+              
+                        if(date.getFullYear()==now.getFullYear())   
+                        {
+                            if(date.getMonth()==now.getMonth()+1)
+                            {
+                                if(date.getDate()<now.getDate()+1)
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                        if(date.getFullYear()>now.getFullYear()+1)  {return true;}
+                        if(date.getFullYear()==now.getFullYear()+1) {if(date.getMonth()>d.getMonth()){return true;}}
+                    },
+            });
+        }else{
+            alert("Please select From date first");
+        }
+})
+
+        
+    });
+  
+
+    </script>
+
+<script>
+function editgst(id)
+{
+    var id=id;
+    // alert("editgst"+id);
+    $("#GST_ID").val(id);
+
+    $('#heading').html("Edit GST");
+
+    $("#jscal_field_date1").parent().css("pointer-events","none");
+
+    $('#create_gst').replaceWith('<input type="button" value="Edit" class="btn" id="edit_gst" style="padding:5px;width:100px;">');
+    
+    $.ajax({
+                'type':'GET',
+                    'url':'index.php?action=GST_Ajax&module=Ajax&execute=6&id='+id,
+
+                success:function(data){
+                 
+                        var new_data=JSON.parse(data);
+                    
+                        $("#service_name").val(new_data[0]);
+                        $("#hsn_code").val(new_data[1]);
+                        $("#igst").val(new_data[2]);
+                        $("#normal_gst").val(new_data[5]);
+                        $("#rcm_val").val(new_data[6]);
+                        $("#credit_gst").val(new_data[7]);
+                        $("#jscal_field_date1").val(new_data[3]);
+                        $("#jscal_field_date2").val(new_data[4]);
+                    
+                    }         
+        })   
+    
+    on();
+
+
+}
+function delgst(id)
+{
+    var id=id;
+    if(window.confirm("Are you sure to delete GST:"+id+"?"))
+    {
+        $.ajax({
+                'type':'GET',
+                    'url':'index.php?action=GST_Ajax&module=Ajax&execute=5&id='+id,
+
+                success:function(data){
+                   /*  $.ajax({
+                        'type':'GET',   
+                        'url':'index.php?action=GST_Ajax&module=Ajax&execute='+2,
+                        success:function(data)
+                        {
+                            $('#bdy').html(data);
+                        }
+                    });             */  
+                    
+                    if(data==1){
+                        var rowid = $("#sectab").find("input[id='gst_id'][value='"+id+"']").parents("tr");
+                        datatable.row( rowid ).remove().draw();
+
+                        alert("Record Deleted.");
+                    }else
+                    {
+                        alert("Something Went Wrong.");
+                    }
+                    
+                }         
+        })   
+    }
+}
+
+    function on() {
+    //console.log(m);
+    $("#modal").css("display","none");
+    $("#overlay #loader").css("display",'block');
+    document.getElementById("overlay").style.display = "block";
+
+    $("#overlay #loader").css("display",'none');
+    $("#modal").css("display","block");
+}
+
+
+function off() {
+    $('#gstform').trigger("reset");
+    $("#branddiv").html("");
+    $("#brlist").html("");
+    $("#servicelist").html("");
+   
+    $("#heading").text("Create GST");
+
+    $("#jscal_field_date1").parent().css("pointer-events","all");
+    
+    $('#bttn').html('<input type="button" value="Create" class="btn" id="create_gst" style="padding:5px;width:100px;" />');
+
+
+    $("#servicediv ul li input[type=checkbox]").prop("checked",false);
+    document.getElementById("overlay").style.display = "none";
+    empty=1;
+}
+
+</script>
+    <!-- END: main -->
